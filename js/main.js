@@ -468,7 +468,28 @@ function renderOrderCountChart(data) {
     maintainAspectRatio: false,
     plugins: {
         legend: { position: 'top', align: 'end', labels: { color: '#94a3b8', font: { family: 'Vazirmatn' } } },
-        tooltip: { rtl: true, textDirection: 'rtl', callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} عدد` } }
+       tooltip: {
+    rtl: true,
+    textDirection: 'rtl',
+    backgroundColor: 'rgba(2, 6, 23, 0.8)',
+    titleFont: { family: 'Vazirmatn' },
+    bodyFont: { family: 'Vazirmatn' },
+    padding: 12,
+    cornerRadius: 8,
+    callbacks: {
+        // START: This title function was missing
+        title: (tooltipItems) => {
+            return new Date(tooltipItems[0].label).toLocaleDateString('fa-IR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        },
+        // END: This title function was missing
+        label: (c) => `${c.dataset.label}: ${c.raw} عدد`
+    }
+}
     },
     scales: { 
         x: { 
