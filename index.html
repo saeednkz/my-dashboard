@@ -104,6 +104,16 @@
         </header>
         <div id="kpi-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-6"></div>
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-grow">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow mt-6">
+    <div class="glass-card p-6 rounded-2xl flex flex-col">
+        <h3 class="text-lg font-semibold mb-4 text-slate-100">تعداد سفارش‌های روزانه</h3>
+        <div class="flex-grow min-h-[300px]"><canvas id="orderCountChart"></canvas></div>
+    </div>
+    <div class="glass-card p-6 rounded-2xl flex flex-col">
+        <h3 class="text-lg font-semibold mb-4 text-slate-100">ترکیب ارزش دارایی‌های استخر</h3>
+        <div class="flex-grow flex items-center justify-center min-h-[300px]"><canvas id="assetCompositionChart" style="max-height: 280px;"></canvas></div>
+    </div>
+</div>
             <div class="lg:col-span-3 glass-card p-6 rounded-2xl flex flex-col">
                 <h3 id="sales-profit-chart-title" class="text-lg font-semibold mb-4 text-slate-100">مقایسه فروش و سود</h3>
                 <div class="flex-grow min-h-[300px]"><canvas id="salesProfitChart"></canvas></div>
