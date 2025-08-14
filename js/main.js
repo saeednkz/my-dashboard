@@ -204,8 +204,7 @@ function populateDashboardFilters() {
     renderAssetCompositionChart();
     }
 
-// START: Replace the entire renderKPIs function with this one
-// START: Replace the entire renderKPIs function with this one
+// START: Replace the entire renderKPIs function with this final version
 function renderKPIs(data) {
     const kpiGrid = document.getElementById('kpi-grid');
     if (!kpiGrid) return;
@@ -235,7 +234,7 @@ function renderKPIs(data) {
         totalAssetValue: Object.values(currencyPools).reduce((sum, pool) => sum + (pool.quantity * pool.weightedAvgCost), 0)
     };
 
-    // 2. Define all KPI cards with their metadata (labels, icons, etc.)
+    // 2. Define all KPI cards with their metadata
     const kpiDefinitions = [
         { key: 'pendingTxCount', label: 'تراکنش‌های در انتظار تسویه', unit: 'عدد', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', clickable: true },
         { key: 'totalSalesVolume', label: 'حجم کل فروش به مشتری', unit: 'تومان', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01' },
@@ -288,19 +287,17 @@ function renderKPIs(data) {
                         <path stroke-linecap="round" stroke-linejoin="round" d="${kpi.icon}" />
                     </svg>
                 </div>
-                <!-- START: This is the corrected part -->
                 <div class="min-w-0 flex-1">
                     <p class="text-sm text-slate-400 mb-1 truncate">${kpi.label}</p>
-                    <p class="text-xl font-bold text-white flex items-baseline break-words">${formattedValue} <span class="text-xs mr-1">${kpi.unit}</span></p>
+                    <!-- FIXED: Changed break-words to break-all for guaranteed wrapping -->
+                    <p class="text-xl font-bold text-white flex items-baseline break-all">${formattedValue} <span class="text-xs mr-1">${kpi.unit}</span></p>
                 </div>
-                <!-- END: This is the corrected part -->
             </div>
             ${progressBarHtml}
         `;
         kpiGrid.appendChild(card);
     });
 }
-// END: Replacement block
 // END: Replacement block
     
     function renderSalesProfitChart(data) {
