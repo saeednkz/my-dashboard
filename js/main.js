@@ -205,6 +205,7 @@ function populateDashboardFilters() {
     }
 
 // START: Replace the entire renderKPIs function with this one
+// START: Replace the entire renderKPIs function with this one
 function renderKPIs(data) {
     const kpiGrid = document.getElementById('kpi-grid');
     if (!kpiGrid) return;
@@ -287,16 +288,19 @@ function renderKPIs(data) {
                         <path stroke-linecap="round" stroke-linejoin="round" d="${kpi.icon}" />
                     </svg>
                 </div>
-                <div>
-                    <p class="text-sm text-slate-400 mb-1">${kpi.label}</p>
-                    <p class="text-xl font-bold text-white flex items-baseline">${formattedValue} <span class="text-xs mr-1">${kpi.unit}</span></p>
+                <!-- START: This is the corrected part -->
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm text-slate-400 mb-1 truncate">${kpi.label}</p>
+                    <p class="text-xl font-bold text-white flex items-baseline break-words">${formattedValue} <span class="text-xs mr-1">${kpi.unit}</span></p>
                 </div>
+                <!-- END: This is the corrected part -->
             </div>
             ${progressBarHtml}
         `;
         kpiGrid.appendChild(card);
     });
 }
+// END: Replacement block
 // END: Replacement block
     
     function renderSalesProfitChart(data) {
