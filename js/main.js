@@ -382,41 +382,100 @@ function renderKPIs(data) {
             }
         });
     }
-  function renderProfitCompositionChart(data) {
-        const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
-        const selectedPeriod = periodFilter.options[periodFilter.selectedIndex].text;
-        document.getElementById('profit-composition-chart-title').textContent = `ترکیب سود خالص - ${selectedPeriod}`;
-        
-        // تابع کمکی برای خواندن مقادیر با هر دو نوع نام‌گذاری
-        const getValue = (transaction, keyWithUnderscore, keyWithSpace) => {
-            const value = transaction[keyWithUnderscore] || transaction[keyWithSpace] || 0;
-            return parseFloat(value);
-        };
+// START: Replace the entire function with this corrected version
+function renderProfitCompositionChart(data) {
+    const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
+    const selectedPeriod = periodFilter.options[periodFilter.selectedIndex].text;
+    document.getElementById('profit-composition-chart-title').textContent = `ترکیب سود خالص - ${selectedPeriod}`;
+    
+    const getValue = (transaction, keyWithUnderscore, keyWithSpace) => {
+        const value = transaction[keyWithUnderscore] || transaction[keyWithSpace] || 0;
+        return parseFloat(value);
+    };
 
-        const networkFeeProfit = settledData.reduce((sum, d) => {
-            const price = getValue(d, 'currency_price', 'currency_price');
-            const networkWage = getValue(d, 'Network_Wage', 'Network Wage');
-            const actualNetworkWage = getValue(d, 'ActualNetwork_Wage', 'ActualNetwork Wage');
-            const profitPerTx = (networkWage - actualNetworkWage) * price;
-            return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
-        }, 0);
-        
-        const totalFixWage = settledData.reduce((sum, d) => sum + getValue(d, 'Fix_Wage', 'Fix Wage'), 0);
-        const totalVipAmount = settledData.reduce((sum, d) => sum + getValue(d, 'Vip_Amount', 'Vip Amount'), 0);
-        const totalNetProfit = settledData.reduce((sum, d) => sum + getValue(d, 'NetProfit', 'NetProfit'), 0);
+    // Initialize all profit components to zero
+    let marginProfit = 0;
+    let totalFixWage = 0;
+    let totalVipAmount = 0;
+    let networkFeeProfit = 0;
 
-        const marginProfit = totalNetProfit - networkFeeProfit - totalFixWage - totalVipAmount;
-        const chartData = [marginProfit, totalFixWage, totalVipAmount, networkFeeProfit].map(v => v > 0 ? v : 0);
-        const labels = ['سود مارجین', 'کارمزد ثابت', 'کارمزد VIP', 'سود کارمزد شبکه'];
-        const colors = ['#0ea5e9', '#10b981', '#f97316', '#8b5cf6'];
-        const ctx = document.getElementById('profitCompositionChart').getContext('2d');
-        if(profitCompositionChart) profitCompositionChart.destroy();
-        profitCompositionChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: { labels, datasets: [{ data: chartData, backgroundColor: colors, borderColor: '#020617', borderWidth: 4, hoverOffset: 12 }] },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, boxWidth: 8, padding: 20, font: { family: 'Vazirmatn' } } }, tooltip: { rtl: true, textDirection: 'rtl', backgroundColor: 'rgba(2, 6, 23, 0.8)', titleFont: { family: 'Vazirmatn' }, bodyFont: { family: 'Vazirmatn' }, padding: 12, cornerRadius: 8, callbacks: { label: (c) => `${c.label}: ${formatCurrency(c.raw,0)} تومان` } } } }
-        });
-    }
+    // Calculate each component directly by iterating through transactions
+    settledData.forEach(d => {
+        const price = getValue(d, 'currency_price', 'currency_price');
+        const networkWage = getValue(d, 'Network_Wage', 'Network Wage');
+        const actualNetworkWage = getValue(d, 'ActualNetwork_Wage', 'ActualNetwork Wage');
+        
+        totalFixWage += getValue(d, 'Fix_Wage', 'Fix Wage');
+        totalVipAmount += getValue(d, 'Vip_Amount', 'Vip Amount');
+        
+        const currentNetworkFeeProfit = (networkWage - actualNetworkWage) * price;
+        if (!isNaN(currentNetworkFeeProfit)) {
+            networkFeeProfit += currentNetworkFeeProfit;
+        }
+
+        // Margin profit is only generated from 'buy' (sales to customer) transactions
+        if (d.services_type === 'buy') {
+            const costBasis = getValue(d, 'Cost_Basis', 'Cost_Basis');
+            const amount = getValue(d, 'currency_amount', 'currency_amount');
+            // Margin is the difference between sale price and cost basis, multiplied by amount
+            const currentMarginProfit = (price - costBasis) * amount;
+            if (!isNaN(currentMarginProfit)) {
+                marginProfit += currentMarginProfit;
+            }
+        }
+    });
+
+    const chartData = [marginProfit, totalFixWage, totalVipAmount, networkFeeProfit].map(v => v > 0 ? v : 0);
+    const labels = ['سود مارجین', 'کارمزد ثابت', 'کارمزد VIP', 'سود کارمزد شبکه'];
+    const colors = ['#0ea5e9', '#10b981', '#f97316', '#8b5cf6'];
+    const ctx = document.getElementById('profitCompositionChart').getContext('2d');
+    
+    if(profitCompositionChart) profitCompositionChart.destroy();
+    
+    profitCompositionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { 
+            labels, 
+            datasets: [{ 
+                data: chartData, 
+                backgroundColor: colors, 
+                borderColor: '#020617', 
+                borderWidth: 4, 
+                hoverOffset: 12 
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            cutout: '70%', 
+            plugins: { 
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        color: '#94a3b8', 
+                        usePointStyle: true, 
+                        boxWidth: 8, 
+                        padding: 20, 
+                        font: { family: 'Vazirmatn' } 
+                    } 
+                }, 
+                tooltip: { 
+                    rtl: true, 
+                    textDirection: 'rtl', 
+                    backgroundColor: 'rgba(2, 6, 23, 0.8)', 
+                    titleFont: { family: 'Vazirmatn' }, 
+                    bodyFont: { family: 'Vazirmatn' }, 
+                    padding: 12, 
+                    cornerRadius: 8, 
+                    callbacks: { 
+                        label: (c) => `${c.label}: ${formatCurrency(c.raw,0)} تومان` 
+                    } 
+                } 
+            } 
+        }
+    });
+}
+// END: Replacement block
     // START: Add the first new chart function
 function renderOrderCountChart(data) {
     const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
