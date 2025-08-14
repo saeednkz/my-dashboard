@@ -204,16 +204,17 @@ function populateDashboardFilters() {
     renderAssetCompositionChart();
     }
 
-// این تابع را به طور کامل جایگزین کنید
+// START: Replace the entire renderKPIs function with this one
 function renderKPIs(data) {
     const kpiGrid = document.getElementById('kpi-grid');
     if (!kpiGrid) return;
     kpiGrid.innerHTML = '';
 
+    // 1. Calculate all values first
     const settledData = data.filter(d => d.costBasisStatus !== 'pending');
     const salesOrders = settledData.filter(d => d.services_type === 'buy');
     const buyOrders = settledData.filter(d => d.services_type === 'sell');
-
+    
     const kpiValues = {
         pendingTxCount: ALL_TRANSACTIONS.filter(d => d.costBasisStatus === 'pending').length,
         totalSalesVolume: salesOrders.reduce((sum, d) => sum + (parseFloat(d.Total_Amount) || 0), 0),
@@ -233,38 +234,41 @@ function renderKPIs(data) {
         totalAssetValue: Object.values(currencyPools).reduce((sum, pool) => sum + (pool.quantity * pool.weightedAvgCost), 0)
     };
 
+    // 2. Define all KPI cards with their metadata (labels, icons, etc.)
     const kpiDefinitions = [
-        // ... تعریفات KPI ها در اینجا قرار می گیرد ...
-        { key: 'totalSalesVolume', label: 'حجم فروش به مشتری', unit: 'تومان', icon: '...' },
-        { key: 'totalNetProfit', label: 'سود خالص (نهایی شده)', unit: 'تومان', icon: '...' },
-        { key: 'salesOrdersCount', label: 'تعداد فروش به مشتری', unit: 'عدد', icon: '...' },
-        // بقیه KPI ها را اینجا اضافه کنید
+        { key: 'pendingTxCount', label: 'تراکنش‌های در انتظار تسویه', unit: 'عدد', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', clickable: true },
+        { key: 'totalSalesVolume', label: 'حجم کل فروش به مشتری', unit: 'تومان', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01' },
+        { key: 'totalBuyVolume', label: 'حجم کل خرید از مشتری', unit: 'تومان', icon: 'M3 10h18M7 15h1m4 0h1m4 0h1m-1-5h1.5a2.5 2.5 0 0 0 0-5H18' },
+        { key: 'totalNetProfit', label: 'سود خالص (نهایی شده)', unit: 'تومان', icon: 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' },
+        { key: 'salesOrdersCount', label: 'تعداد فروش به مشتری', unit: 'عدد', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z' },
+        { key: 'buyOrdersCount', label: 'تعداد خرید از مشتری', unit: 'عدد', icon: 'M16 11V7a4 4 0 0 0-8 0v4M5 9h14l1 12H4L5 9z' },
+        { key: 'numVipOrders', label: 'تعداد سفارش‌های VIP', unit: 'عدد', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z' },
+        { key: 'avgProfitPerOrder', label: 'میانگین سود هر سفارش', unit: 'تومان', icon: 'M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2Zm-3-9h2' },
+        { key: 'networkFeeProfit', label: 'سود کارمزد شبکه', unit: 'تومان', icon: 'M8.684 13.342C8.886 13.545 9 13.848 9 14.158V15.5a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1.342c0-.31.114-.613.316-.816l8-8c.202-.202.505-.316.816-.316h1.342a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1.582c-.31 0-.613.114-.816.316l-8 8Z' },
+        { key: 'totalAssetValue', label: 'ارزش کل دارایی‌ها (استخر)', unit: 'تومان', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0z M9 9.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 011.08 1.006l-4.002 2.223a.75.75 0 01-1.08-1.006zM11.25 10.5a.75.75 0 100-1.5.75.75 0 000 1.5zM9 12.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 11.6 1.342l-4.002 2.223a.75.75 0 01-1.028-.668z' }
     ];
 
-    // This part is simplified for brevity. You should copy the full `kpis` array from your code
-    // and just add the `key` property to each object.
-    const kpis = [
-         { key: 'totalAssetValue', label: 'ارزش کل دارایی‌ها (استخر)', value: formatCurrency(kpiValues.totalAssetValue,0), unit: 'تومان', icon: '...' },
-         { key: 'totalSalesVolume', label: 'حجم فروش به مشتری', value: formatCurrency(kpiValues.totalSalesVolume,0), unit: 'تومان', icon: '...' },
-         { key: 'totalNetProfit', label: 'سود خالص (نهایی شده)', value: formatCurrency(kpiValues.totalNetProfit,0), unit: 'تومان', icon: '...' },
-         { key: 'salesOrdersCount', label: 'تعداد فروش به مشتری', value: formatCurrency(kpiValues.salesOrdersCount,0), unit: 'عدد', icon: '...' },
-         // ... and so on for all your other KPIs
-    ];
-
-    kpis.forEach(kpi => {
+    // 3. Loop through definitions and render each card
+    kpiDefinitions.forEach(kpi => {
         const card = document.createElement('div');
-        card.className = 'glass-card p-4 rounded-xl flex flex-col gap-2 fade-in';
+        const currentValue = kpiValues[kpi.key];
+        const formattedValue = formatCurrency(currentValue, (kpi.unit === 'عدد' ? 0 : 2));
 
+        card.className = 'glass-card p-4 rounded-xl flex flex-col gap-2 fade-in';
+        if (kpi.clickable) {
+             card.classList.add('cursor-pointer', 'hover:bg-slate-800/50');
+             card.addEventListener('click', showPendingTransactionsModal);
+        }
+        
         let progressBarHtml = '';
         const target = KPI_TARGETS[kpi.key];
         const currentPeriodType = document.getElementById('interval-type-filter').value;
 
         if (target && target.value > 0 && target.period === currentPeriodType) {
-            const currentValue = kpiValues[kpi.key];
             const progress = Math.min((currentValue / target.value) * 100, 100);
-
+            
             progressBarHtml = `
-                <div class="space-y-1">
+                <div class="space-y-1 pt-1">
                     <div class="w-full bg-slate-700 rounded-full h-2">
                         <div class="bg-cyan-400 h-2 rounded-full" style="width: ${progress}%"></div>
                     </div>
@@ -279,13 +283,13 @@ function renderKPIs(data) {
         card.innerHTML = `
             <div class="flex items-start gap-4">
                 <div class="bg-slate-800/60 h-10 w-10 shrink-0 flex items-center justify-center rounded-lg">
-                    <svg class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <svg class="h-5 w-5 ${kpi.key === 'pendingTxCount' ? 'text-amber-400' : 'text-cyan-400'}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="${kpi.icon}" />
                     </svg>
                 </div>
                 <div>
                     <p class="text-sm text-slate-400 mb-1">${kpi.label}</p>
-                    <p class="text-xl font-bold text-white flex items-baseline">${kpi.value} <span class="text-xs mr-1">${kpi.unit}</span></p>
+                    <p class="text-xl font-bold text-white flex items-baseline">${formattedValue} <span class="text-xs mr-1">${kpi.unit}</span></p>
                 </div>
             </div>
             ${progressBarHtml}
@@ -293,6 +297,7 @@ function renderKPIs(data) {
         kpiGrid.appendChild(card);
     });
 }
+// END: Replacement block
     
     function renderSalesProfitChart(data) {
         const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
