@@ -184,6 +184,8 @@ function setupDashboard() {
         renderKPIs(data);
         renderSalesProfitChart(data);
         renderProfitCompositionChart(data);
+            renderOrderCountChart(data);
+    renderAssetCompositionChart();
     }
 
     function renderKPIs(data) {
@@ -219,7 +221,11 @@ const profitPerTx = (networkWage - actualNetworkWage) * price;
 
 return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
 }, 0);
-
+// START: Add this calculation
+const totalAssetValue = Object.values(currencyPools).reduce((sum, pool) => {
+    return sum + (pool.quantity * pool.weightedAvgCost);
+}, 0);
+// END: Add this calculation
         const kpis = [
             { id: 'kpi-pending-tx', label: 'تراکنش‌های در انتظار تسویه', value: formatCurrency(pendingTxCount, 0), unit: 'عدد', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', clickable: true },
             { label: 'حجم کل فروش به مشتری', value: `${formatCurrency(totalSalesVolume,0)}`, unit: 'تومان', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01' },
@@ -230,6 +236,8 @@ return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
             { label: 'تعداد سفارش‌های VIP', value: formatCurrency(numVipOrders, 0), unit: 'عدد', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z' },
             { label: 'میانگین سود هر سفارش', value: `${formatCurrency(avgProfitPerOrder,0)}`, unit: 'تومان', icon: 'M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2Zm-3-9h2' },
             { label: 'سود کارمزد شبکه', value: `${formatCurrency(networkFeeProfit,0)}`, unit: 'تومان', icon: 'M8.684 13.342C8.886 13.545 9 13.848 9 14.158V15.5a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1.342c0-.31.114-.613.316-.816l8-8c.202-.202.505-.316.816-.316h1.342a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1.582c-.31 0-.613.114-.816.316l-8 8Z' },
+
+    { label: 'ارزش کل دارایی‌ها (استخر)', value: `${formatCurrency(totalAssetValue,0)}`, unit: 'تومان', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0z M9 9.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 011.08 1.006l-4.002 2.223a.75.75 0 01-1.08-1.006zM11.25 10.5a.75.75 0 100-1.5.75.75 0 000 1.5zM9 12.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 11.6 1.342l-4.002 2.223a.75.75 0 01-1.028-.668z' },
         ];
         kpis.forEach(kpi => {
             const card = document.createElement('div');
@@ -363,6 +371,109 @@ return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
             options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', usePointStyle: true, boxWidth: 8, padding: 20, font: { family: 'Vazirmatn' } } }, tooltip: { rtl: true, textDirection: 'rtl', backgroundColor: 'rgba(2, 6, 23, 0.8)', titleFont: { family: 'Vazirmatn' }, bodyFont: { family: 'Vazirmatn' }, padding: 12, cornerRadius: 8, callbacks: { label: (c) => `${c.label}: ${formatCurrency(c.raw,0)} تومان` } } } }
         });
     }
+    // START: Add the first new chart function
+function renderOrderCountChart(data) {
+    const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
+    const { startDate, endDate } = getSelectedDateRange();
+
+    const aggregatedData = {};
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        aggregatedData[d.toISOString().split('T')[0]] = { salesCount: 0, buyCount: 0 };
+    }
+
+    settledData.forEach(t => {
+        const key = t.orderdate.toISOString().split('T')[0];
+        if (aggregatedData[key]) {
+            if (t.services_type === 'buy') { // فروش به مشتری
+                aggregatedData[key].salesCount++;
+            } else if (t.services_type === 'sell') { // خرید از مشتری
+                aggregatedData[key].buyCount++;
+            }
+        }
+    });
+
+    const labels = Object.keys(aggregatedData);
+    const salesData = Object.values(aggregatedData).map(d => d.salesCount);
+    const buyData = Object.values(aggregatedData).map(d => d.buyCount);
+
+    const ctx = document.getElementById('orderCountChart').getContext('2d');
+    if(window.orderCountChart) window.orderCountChart.destroy();
+
+    window.orderCountChart = new Chart(ctx, {
+        type: 'bar', // Or 'line' if you prefer
+        data: { 
+            labels, 
+            datasets: [
+                { 
+                    label: 'فروش به مشتری', 
+                    data: salesData, 
+                    backgroundColor: '#22d3ee',
+                    borderColor: '#22d3ee',
+                },
+                { 
+                    label: 'خرید از مشتری', 
+                    data: buyData, 
+                    backgroundColor: '#f59e0b',
+                    borderColor: '#f59e0b',
+                }
+            ] 
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', align: 'end', labels: { color: '#94a3b8', font: { family: 'Vazirmatn' } } },
+                tooltip: { rtl: true, textDirection: 'rtl', callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} عدد` } }
+            },
+            scales: { x: { ticks: { color: '#94a3b8' } }, y: { beginAtZero: true, ticks: { color: '#94a3b8' } } }
+        }
+    });
+}
+// END: Add the first new chart function
+
+// START: Add the second new chart function
+function renderAssetCompositionChart() {
+    const labels = [];
+    const chartData = [];
+    const colors = ['#0ea5e9', '#10b981', '#f97316', '#8b5cf6', '#ef4444', '#f59e0b', '#64748b'];
+
+    let colorIndex = 0;
+    for (const slug in currencyPools) {
+        const pool = currencyPools[slug];
+        const assetValue = pool.quantity * pool.weightedAvgCost;
+
+        if (assetValue > 0) {
+            labels.push(slug.toUpperCase());
+            chartData.push(assetValue);
+        }
+    }
+
+    const ctx = document.getElementById('assetCompositionChart').getContext('2d');
+    if(window.assetCompositionChart) window.assetCompositionChart.destroy();
+
+    window.assetCompositionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { 
+            labels, 
+            datasets: [{ 
+                data: chartData, 
+                backgroundColor: colors.slice(0, labels.length),
+                borderColor: '#020617', 
+                borderWidth: 4 
+            }] 
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Vazirmatn' } } },
+                tooltip: { rtl: true, textDirection: 'rtl', callbacks: { label: (c) => `${c.label}: ${formatCurrency(c.raw, 0)} تومان` } }
+            }
+        }
+    });
+}
+// END: Add the second new chart function
 
     displayCurrentTime();
     populateDashboardFilters();
@@ -622,6 +733,7 @@ async function processAllTransactionsForPools() {
 
 // --- UI & PAGE LOGIC ---
 let salesProfitChart, profitCompositionChart;
+let orderCountChart, assetCompositionChart;
 let currentPage = 1;
 const ROWS_PER_PAGE = 15;
 let filteredTransactions = [];
