@@ -127,7 +127,7 @@ function populateDashboardFilters() {
     const periodFilter = document.getElementById('period-filter');
 
     // Use persian-date to get current Jalali year and month in Tehran time
-    const nowInTehran = new persianDate().toLocale('en').setTimeZone('Asia/Tehran');
+    const nowInTehran = new persianDate().setTimeZone('Asia/Tehran');
     const currentJalaliYear = nowInTehran.year();
     const currentJalaliMonth = nowInTehran.month(); // 1-based month (1=Farvardin)
 
