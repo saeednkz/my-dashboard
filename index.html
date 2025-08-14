@@ -5,24 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>داشبورد حسابداری</title>
     
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
     <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
     <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
     
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body class="text-slate-300">
 
+    <!-- Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center">
         <svg class="animate-spin h-10 w-10 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -31,6 +32,7 @@
         <p id="loading-text" class="mt-4 text-slate-400">در حال بارگذاری و اتصال به سرور...</p>
     </div>
 
+    <!-- Login Page -->
     <div id="login-page" class="hidden h-screen w-screen flex items-center justify-center p-4">
         <div class="w-full max-w-sm">
             <form id="login-form" class="glass-card rounded-2xl p-8 space-y-6">
@@ -52,7 +54,9 @@
         </div>
     </div>
 
+    <!-- Main Application -->
     <div id="main-app" class="hidden flex h-screen p-4 gap-4">
+        <!-- Sidebar -->
         <aside class="w-20 shrink-0 glass-card rounded-2xl flex flex-col items-center py-6 transition-all duration-300 group hover:w-64">
             <div class="flex items-center justify-center h-12 mb-8">
                 <svg class="h-9 w-9 text-cyan-400 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.5 8.5C18.5 9.88071 17.3807 11 16 11H8C6.61929 11 5.5 9.88071 5.5 8.5C5.5 7.11929 6.61929 6 8 6H16C17.3807 6 18.5 7.11929 18.5 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M18.5 15.5C18.5 16.8807 17.3807 18 16 18H8C6.61929 18 5.5 16.8807 5.5 15.5C5.5 14.1193 6.61929 13 8 13H16C17.3807 13 18.5 14.1193 18.5 15.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 3V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -88,245 +92,73 @@
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="flex-1 overflow-y-auto">
-            <div id="page-dashboard" class="page-content">
-    <div class="flex flex-col h-full">
-        <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
-            <div class="flex items-center gap-4">
-                <h2 class="text-3xl font-bold text-slate-100">داشبورد</h2>
-                 <button id="open-targets-modal-btn" class="text-slate-400 hover:text-white transition-colors" title="تنظیم اهداف">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.242 1.417l-.97 1.028c-.028.03-.053.062-.076.096-.144.375-.144.795 0 1.17l.076.096.97 1.028a1.125 1.125 0 01.242 1.417l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.127c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.242-1.417l.97-1.028c.028-.03.053-.062.076-.096.144-.375.144-.795 0-1.17l-.076-.096-.97-1.028a1.125 1.125 0 01-.242-1.417l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.127.332-.183.582-.495.644-.869l.213-1.28z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </button>
-                <div id="current-datetime" class="hidden lg:flex items-center gap-2 text-slate-400 text-sm glass-card px-3 py-2 rounded-lg"></div>
-            </div>
-            <div class="flex items-center gap-3 p-2 glass-card rounded-xl">
-                <select id="interval-type-filter" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"></select>
-                <select id="year-filter" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"></select>
-                <select id="period-filter" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"></select>
-            </div>
-        </header>
-        <div id="kpi-grid" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 mb-6"></div>
-   <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-grow">
-
-    <div class="lg:col-span-3 glass-card p-6 rounded-2xl flex flex-col">
-        <h3 id="sales-profit-chart-title" class="text-lg font-semibold mb-4 text-slate-100">مقایسه فروش و سود</h3>
-        <div class="flex-grow min-h-[300px] relative"><canvas id="salesProfitChart"></canvas></div>
+            <!-- All page contents are dynamically inserted here by JS -->
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page-content"></div>
+            <!-- Transactions Page -->
+            <div id="page-transactions" class="page-content"></div>
+            <!-- Pools Page -->
+            <div id="page-pools" class="page-content"></div>
+            <!-- Suppliers Page -->
+            <div id="page-suppliers" class="page-content"></div>
+            <!-- Users Page -->
+            <div id="page-users" class="page-content"></div>
+        </main>
     </div>
 
-    <div class="lg:col-span-2 glass-card p-6 rounded-2xl flex flex-col">
-        <h3 id="profit-composition-chart-title" class="text-lg font-semibold mb-4 text-slate-100">ترکیب سود خالص</h3>
-        <div class="flex-grow flex items-center justify-center min-h-[300px] relative"><canvas id="profitCompositionChart" style="max-height: 280px;"></canvas></div>
-    </div>
-
-    <div class="lg:col-span-3 glass-card p-6 rounded-2xl flex flex-col">
-        <h3 class="text-lg font-semibold mb-4 text-slate-100">تعداد سفارش‌های روزانه</h3>
-        <div class="flex-grow min-h-[300px] relative"><canvas id="orderCountChart"></canvas></div>
-    </div>
-
-    <div class="lg:col-span-2 glass-card p-6 rounded-2xl flex flex-col">
-        <h3 class="text-lg font-semibold mb-4 text-slate-100">ترکیب ارزش دارایی‌های استخر</h3>
-        <div class="flex-grow flex items-center justify-center min-h-[300px] relative"><canvas id="assetCompositionChart" style="max-height: 280px;"></canvas></div>
-    </div>
-
-</div>
-    </div>
-</div>
-
-<div id="page-transactions" class="page-content">
-    <div class="flex flex-col h-full">
-        <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 class="text-3xl font-bold text-slate-100">مدیریت تراکنش‌ها</h2>
-            <div class="flex items-center gap-3">
-                <input type="file" id="csv-file-input" class="hidden" accept=".csv">
-                <button id="import-csv-btn" class="bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-indigo-400 transition-colors">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                    <span>ورود از فایل CSV</span>
-                </button>
-                <button id="export-csv-btn" class="bg-emerald-500 text-slate-900 font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-emerald-400 transition-colors">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                    <span>خروجی CSV</span>
-                </button>
-                <button id="add-transaction-btn" class="bg-cyan-500 text-slate-900 font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-cyan-400 transition-colors">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
-                    <span>افزودن تراکنش</span>
-                </button>
-            </div>
-        </header>
-        
-        <div class="glass-card p-4 rounded-xl mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <input type="text" id="tx-search-input" placeholder="جستجو در تمام جزئیات..." class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
-                <select id="tx-currency-filter" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
-                    <option value="">همه ارزها</option>
-                </select>
-                <input type="text" id="tx-start-date" placeholder="از تاریخ" class="persian-datepicker bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
-                <input type="text" id="tx-end-date" placeholder="تا تاریخ" class="persian-datepicker bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
-                <select id="tx-type-filter" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5">
-                    <option value="">همه انواع</option>
-                    <option value="sell">خرید از مشتری</option>
-                    <option value="buy">فروش به مشتری</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="flex-grow glass-card rounded-2xl overflow-hidden flex flex-col">
-            <div class="table-container overflow-x-auto flex-grow">
-                <table class="w-full text-sm text-right text-slate-400">
-                    <thead class="text-xs text-slate-300 uppercase bg-slate-800/60 sticky top-0 z-10">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">ID سفارش</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">تاریخ</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">کاربر/تامین‌کننده</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">نوع</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">ارز</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">مقدار ارز</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">مبلغ کل</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">سود خالص</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactions-table-body"></tbody>
-                </table>
-            </div>
-            <div id="tx-pagination" class="flex justify-between items-center p-4 border-t border-slate-700/50"></div>
-        </div>
-    </div>
-</div>
-
-<div id="page-pools" class="page-content">
-    <div class="flex flex-col h-full">
-        <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 class="text-3xl font-bold text-slate-100">مدیریت استخر ارزها</h2>
-        </header>
-        <div class="flex-grow glass-card rounded-2xl overflow-hidden flex flex-col">
-            <div class="table-container overflow-x-auto flex-grow">
-                <table class="w-full text-sm text-right text-slate-400">
-                    <thead class="text-xs text-slate-300 uppercase bg-slate-800/60 sticky top-0 z-10">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">ارز</th>
-                            <th scope="col" class="px-6 py-3">موجودی کل</th>
-                            <th scope="col" class="px-6 py-3">میانگین قیمت تمام شده (تومان)</th>
-                            <th scope="col" class="px-6 py-3">عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pools-table-body"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="page-suppliers" class="page-content">
-    <div class="flex flex-col h-full">
-        <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 class="text-3xl font-bold text-slate-100">مدیریت تامین‌کنندگان</h2>
-            <div class="flex items-center gap-3">
-                <button id="comparative-report-btn" class="bg-purple-500 text-slate-900 font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-purple-400 transition-colors">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 100 15 7.5 7.5 0 000-15zM21 21l-5.2-5.2" /></svg>
-                    <span>گزارش مقایسه‌ای خرید</span>
-                </button>
-                <button id="add-purchase-btn" class="bg-emerald-500 text-slate-900 font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-emerald-400 transition-colors">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.75A.75.75 0 013 4.5h.75m0 0H21m-9 6h9" /></svg>
-                    <span>ثبت خرید از تامین‌کننده</span>
-                </button>
-                <button id="add-supplier-btn" class="bg-cyan-500 text-slate-900 font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-cyan-400 transition-colors">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
-                    <span>افزودن تامین‌کننده</span>
-                </button>
-            </div>
-        </header>
-        <div class="flex-grow glass-card rounded-2xl overflow-hidden flex flex-col">
-            <div class="table-container overflow-x-auto flex-grow">
-                <table class="w-full text-sm text-right text-slate-400">
-                    <thead class="text-xs text-slate-300 uppercase bg-slate-800/60 sticky top-0 z-10">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">نام تامین‌کننده</th>
-                            <th scope="col" class="px-6 py-3">فرد رابط</th>
-                            <th scope="col" class="px-6 py-3">موبایل</th>
-                            <th scope="col" class="px-6 py-3">ایمیل</th>
-                            <th scope="col" class="px-6 py-3">عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="suppliers-table-body"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="page-users" class="page-content">
-    <div class="flex flex-col h-full">
-        <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 class="text-3xl font-bold text-slate-100">مدیریت کاربران و دسترسی‌ها</h2>
-        </header>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                <div class="glass-card rounded-2xl p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-slate-100">لیست کاربران</h3>
-                        <button id="add-user-btn" class="bg-cyan-500 text-slate-900 font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-cyan-400 transition-colors text-sm">
-                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
-                            <span>کاربر جدید</span>
-                        </button>
-                    </div>
-                    <div class="table-container overflow-x-auto">
-                        <table class="w-full text-sm text-right text-slate-400">
-                            <thead class="text-xs text-slate-300 uppercase bg-slate-800/60">
-                                <tr>
-                                    <th class="px-6 py-3">نام</th>
-                                    <th class="px-6 py-3">ایمیل</th>
-                                    <th class="px-6 py-3">نقش</th>
-                                    <th class="px-6 py-3">عملیات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="lg:col-span-1 glass-card rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-slate-100">نقش‌ها و دسترسی‌ها</h3>
-                    <button id="add-role-btn" class="bg-emerald-500/80 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-600/80 transition-colors text-sm">
-                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
-                        <span>نقش جدید</span>
-                    </button>
-                </div>
-                <div id="roles-section" class="space-y-4"></div>
-            </div>
-        </div>
-    </div>
-</div>
-            </main>
-    </div>
-
+    <!-- Details Modal (Corrected) -->
     <div id="details-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-        </div>
-    <div id="transaction-form-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-        </div>
-
-   <div id="targets-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
-    <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
-            <h3 class="text-xl font-bold text-white">تنظیم اهداف KPI</h3>
-            <button id="close-targets-modal-btn" class="text-slate-400 hover:text-white">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-        </div>
-        <div class="modal-body p-6 overflow-y-auto">
-            <form id="targets-form">
-                <div id="targets-form-body" class="space-y-4">
-                    </div>
-                <div class="mt-6">
-                    <button type="submit" class="w-full text-white bg-cyan-600 hover:bg-cyan-700 font-medium rounded-lg text-sm px-5 py-3 text-center">ذخیره اهداف</button>
-                </div>
-            </form>
+        <div class="glass-card rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
+                <h3 id="details-modal-title" class="text-xl font-bold text-white">جزئیات کامل تراکنش</h3>
+                <button class="close-modal-btn text-slate-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="details-modal-body" class="modal-body p-6 overflow-y-auto"></div>
         </div>
     </div>
-</div>
-<script type="module" src="js/main.js" defer></script>
+
+    <!-- Add/Edit Transaction Modal (Corrected) -->
+    <div id="transaction-form-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
+                <h3 id="transaction-form-title" class="text-xl font-bold text-white">افزودن تراکنش جدید</h3>
+                <button class="close-modal-btn text-slate-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body p-6 overflow-y-auto">
+                <form id="transaction-form" class="space-y-4"></form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Targets Settings Modal -->
+    <div id="targets-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
+                <h3 class="text-xl font-bold text-white">تنظیم اهداف KPI</h3>
+                <button id="close-targets-modal-btn" class="text-slate-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body p-6 overflow-y-auto">
+                <form id="targets-form">
+                    <div id="targets-form-body" class="space-y-4">
+                        <!-- Target inputs will be dynamically inserted here by JavaScript -->
+                    </div>
+                    <div class="mt-6">
+                        <button type="submit" class="w-full text-white bg-cyan-600 hover:bg-cyan-700 font-medium rounded-lg text-sm px-5 py-3 text-center">ذخیره اهداف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Script -->
+    <script type="module" src="js/main.js" defer></script>
 </body>
 </html>
