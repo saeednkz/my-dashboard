@@ -20,6 +20,7 @@ let roles = {};
 let ALL_SUPPLIERS = [];
 let currentUser = null;
 let authUser = null;
+let KPI_TARGETS = {};
 
 let unsubscribeTransactions, unsubscribeUsers, unsubscribeRoles, unsubscribeSuppliers;
 let appInitialized = false;
@@ -119,20 +120,32 @@ function setupDashboard() {
         setInterval(updateTime, 60000);
     }
 
-    function populateDashboardFilters() {
-        const currentJalaliYear = new persianDate().year();
-        yearFilter.innerHTML = '';
-        for (let year = 1397; year <= currentJalaliYear; year++) {
-             yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
-        }
-        
-        intervalTypeFilter.innerHTML = `<option value="monthly">ماهیانه</option><option value="quarterly">فصلی</option><option value="yearly">سالیانه</option>`;
-        updatePeriodFilter();
-        
-        const currentJalaliDate = new persianDate();
-        yearFilter.value = currentJalaliDate.year();
-        periodFilter.value = currentJalaliDate.month() - 1;
+    // جایگزین کنید
+function populateDashboardFilters() {
+    const yearFilter = document.getElementById('year-filter');
+    const intervalTypeFilter = document.getElementById('interval-type-filter');
+    const periodFilter = document.getElementById('period-filter');
+
+    // Use persian-date to get current Jalali year and month in Tehran time
+    const nowInTehran = new persianDate().toLocale('en').setTimeZone('Asia/Tehran');
+    const currentJalaliYear = nowInTehran.year();
+    const currentJalaliMonth = nowInTehran.month(); // 1-based month (1=Farvardin)
+
+    yearFilter.innerHTML = '';
+    for (let year = 1397; year <= currentJalaliYear; year++) {
+        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
     }
+
+    intervalTypeFilter.innerHTML = `<option value="monthly">ماهیانه</option><option value="quarterly">فصلی</option><option value="yearly">سالیانه</option>`;
+
+    updatePeriodFilter(); // This populates the month/quarter dropdown
+
+    // Set default values to current year and month
+    yearFilter.value = currentJalaliYear;
+    intervalTypeFilter.value = 'monthly'; // Default to monthly view
+    updatePeriodFilter(); // Call again to ensure month view is active
+    periodFilter.value = currentJalaliMonth - 1; // 0-based index for dropdown
+}
 
     function updatePeriodFilter() {
         const intervalType = intervalTypeFilter.value;
@@ -188,71 +201,95 @@ function setupDashboard() {
     renderAssetCompositionChart();
     }
 
-    function renderKPIs(data) {
-        const kpiGrid = document.getElementById('kpi-grid');
-        if (!kpiGrid) return;
-        kpiGrid.innerHTML = '';
+// این تابع را به طور کامل جایگزین کنید
+function renderKPIs(data) {
+    const kpiGrid = document.getElementById('kpi-grid');
+    if (!kpiGrid) return;
+    kpiGrid.innerHTML = '';
 
-        const settledData = data.filter(d => d.costBasisStatus !== 'pending');
-        const pendingTxCount = ALL_TRANSACTIONS.filter(d => d.costBasisStatus === 'pending').length;
+    const settledData = data.filter(d => d.costBasisStatus !== 'pending');
+    const salesOrders = settledData.filter(d => d.services_type === 'buy');
+    const buyOrders = settledData.filter(d => d.services_type === 'sell');
 
-        const salesOrders = settledData.filter(d => d.services_type === 'buy');
-        const buyOrders = settledData.filter(d => d.services_type === 'sell');
-        
-        const totalSalesVolume = salesOrders.reduce((sum, d) => sum + (parseFloat(d.Total_Amount) || 0), 0);
-        const totalBuyVolume = buyOrders.reduce((sum, d) => sum + (parseFloat(d.Total_Amount) || 0), 0);
-        const totalNetProfit = settledData.reduce((sum, d) => sum + (parseFloat(d.NetProfit) || 0), 0);
-        const numVipOrders = settledData.filter(d => (parseFloat(d.Vip_Amount) || 0) > 0).length;
-        const avgProfitPerOrder = settledData.length > 0 ? totalNetProfit / settledData.length : 0;
-        
-// کد اصلاح شده و صحیح
-const networkFeeProfit = settledData.reduce((sum, d) => {
-// ابتدا قیمت ارز را می‌خوانیم
-const price = parseFloat(d.currency_price) || 0;
+    const kpiValues = {
+        pendingTxCount: ALL_TRANSACTIONS.filter(d => d.costBasisStatus === 'pending').length,
+        totalSalesVolume: salesOrders.reduce((sum, d) => sum + (parseFloat(d.Total_Amount) || 0), 0),
+        totalBuyVolume: buyOrders.reduce((sum, d) => sum + (parseFloat(d.Total_Amount) || 0), 0),
+        totalNetProfit: settledData.reduce((sum, d) => sum + (parseFloat(d.NetProfit) || 0), 0),
+        salesOrdersCount: salesOrders.length,
+        buyOrdersCount: buyOrders.length,
+        numVipOrders: settledData.filter(d => (parseFloat(d.Vip_Amount) || 0) > 0).length,
+        avgProfitPerOrder: settledData.length > 0 ? (settledData.reduce((sum, d) => sum + (parseFloat(d.NetProfit) || 0), 0)) / settledData.length : 0,
+        networkFeeProfit: settledData.reduce((sum, d) => {
+            const price = parseFloat(d.currency_price) || 0;
+            const networkWage = parseFloat(d.Network_Wage || d['Network Wage'] || 0);
+            const actualNetworkWage = parseFloat(d.ActualNetwork_Wage || d['ActualNetwork Wage'] || 0);
+            const profitPerTx = (networkWage - actualNetworkWage) * price;
+            return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
+        }, 0),
+        totalAssetValue: Object.values(currencyPools).reduce((sum, pool) => sum + (pool.quantity * pool.weightedAvgCost), 0)
+    };
 
-// هوشمندانه کارمزد دریافتی را می‌خوانیم (هر دو حالت با فاصله و آندرلاین)
-const networkWage = parseFloat(d.Network_Wage || d['Network Wage'] || 0);
+    const kpiDefinitions = [
+        // ... تعریفات KPI ها در اینجا قرار می گیرد ...
+        { key: 'totalSalesVolume', label: 'حجم فروش به مشتری', unit: 'تومان', icon: '...' },
+        { key: 'totalNetProfit', label: 'سود خالص (نهایی شده)', unit: 'تومان', icon: '...' },
+        { key: 'salesOrdersCount', label: 'تعداد فروش به مشتری', unit: 'عدد', icon: '...' },
+        // بقیه KPI ها را اینجا اضافه کنید
+    ];
 
-// هوشمندانه کارمزد واقعی را می‌خوانیم
-const actualNetworkWage = parseFloat(d.ActualNetwork_Wage || d['ActualNetwork Wage'] || 0);
+    // This part is simplified for brevity. You should copy the full `kpis` array from your code
+    // and just add the `key` property to each object.
+    const kpis = [
+         { key: 'totalAssetValue', label: 'ارزش کل دارایی‌ها (استخر)', value: formatCurrency(kpiValues.totalAssetValue,0), unit: 'تومان', icon: '...' },
+         { key: 'totalSalesVolume', label: 'حجم فروش به مشتری', value: formatCurrency(kpiValues.totalSalesVolume,0), unit: 'تومان', icon: '...' },
+         { key: 'totalNetProfit', label: 'سود خالص (نهایی شده)', value: formatCurrency(kpiValues.totalNetProfit,0), unit: 'تومان', icon: '...' },
+         { key: 'salesOrdersCount', label: 'تعداد فروش به مشتری', value: formatCurrency(kpiValues.salesOrdersCount,0), unit: 'عدد', icon: '...' },
+         // ... and so on for all your other KPIs
+    ];
 
-// سود را محاسبه می‌کنیم
-const profitPerTx = (networkWage - actualNetworkWage) * price;
+    kpis.forEach(kpi => {
+        const card = document.createElement('div');
+        card.className = 'glass-card p-4 rounded-xl flex flex-col gap-2 fade-in';
 
-return sum + (isNaN(profitPerTx) ? 0 : profitPerTx);
-}, 0);
-// START: Add this calculation
-const totalAssetValue = Object.values(currencyPools).reduce((sum, pool) => {
-    return sum + (pool.quantity * pool.weightedAvgCost);
-}, 0);
-// END: Add this calculation
-        const kpis = [
-            { id: 'kpi-pending-tx', label: 'تراکنش‌های در انتظار تسویه', value: formatCurrency(pendingTxCount, 0), unit: 'عدد', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', clickable: true },
-            { label: 'حجم کل فروش به مشتری', value: `${formatCurrency(totalSalesVolume,0)}`, unit: 'تومان', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01' },
-            { label: 'حجم کل خرید از مشتری', value: `${formatCurrency(totalBuyVolume,0)}`, unit: 'تومان', icon: 'M3 10h18M7 15h1m4 0h1m4 0h1m-1-5h1.5a2.5 2.5 0 0 0 0-5H18' },
-            { label: 'سود خالص (نهایی شده)', value: `${formatCurrency(totalNetProfit,0)}`, unit: 'تومان', icon: 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' },
-            { label: 'تعداد فروش به مشتری', value: formatCurrency(salesOrders.length, 0), unit: 'عدد', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z' },
-            { label: 'تعداد خرید از مشتری', value: formatCurrency(buyOrders.length, 0), unit: 'عدد', icon: 'M16 11V7a4 4 0 0 0-8 0v4M5 9h14l1 12H4L5 9z' },
-            { label: 'تعداد سفارش‌های VIP', value: formatCurrency(numVipOrders, 0), unit: 'عدد', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z' },
-            { label: 'میانگین سود هر سفارش', value: `${formatCurrency(avgProfitPerOrder,0)}`, unit: 'تومان', icon: 'M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2Zm-3-9h2' },
-            { label: 'سود کارمزد شبکه', value: `${formatCurrency(networkFeeProfit,0)}`, unit: 'تومان', icon: 'M8.684 13.342C8.886 13.545 9 13.848 9 14.158V15.5a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5v-1.342c0-.31.114-.613.316-.816l8-8c.202-.202.505-.316.816-.316h1.342a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1.582c-.31 0-.613.114-.816.316l-8 8Z' },
+        let progressBarHtml = '';
+        const target = KPI_TARGETS[kpi.key];
+        const currentPeriodType = document.getElementById('interval-type-filter').value;
 
-    { label: 'ارزش کل دارایی‌ها (استخر)', value: `${formatCurrency(totalAssetValue,0)}`, unit: 'تومان', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0z M9 9.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 011.08 1.006l-4.002 2.223a.75.75 0 01-1.08-1.006zM11.25 10.5a.75.75 0 100-1.5.75.75 0 000 1.5zM9 12.579a.75.75 0 01.428-.674l4.002-2.223a.75.75 0 11.6 1.342l-4.002 2.223a.75.75 0 01-1.028-.668z' },
-        ];
-        kpis.forEach(kpi => {
-            const card = document.createElement('div');
-            card.className = `glass-card p-4 rounded-xl flex items-start gap-4 fade-in ${kpi.clickable ? 'cursor-pointer hover:bg-slate-800/50' : ''}`;
-            if(kpi.id) card.id = kpi.id;
-            const unitHtml = kpi.unit ? `<span class="text-xs mr-1">${kpi.unit}</span>` : '';
-            card.innerHTML = `<div class="bg-slate-800/60 h-10 w-10 shrink-0 flex items-center justify-center rounded-lg"><svg class="h-5 w-5 ${kpi.id === 'kpi-pending-tx' ? 'text-amber-400' : 'text-cyan-400'}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="${kpi.icon}" /></svg></div><div><p class="text-sm text-slate-400 mb-1">${kpi.label}</p><p class="text-xl font-bold text-white flex items-baseline">${kpi.value} ${unitHtml}</p></div>`;
-            kpiGrid.appendChild(card);
-        });
-        
-        const pendingTxCard = document.getElementById('kpi-pending-tx');
-        if (pendingTxCard) {
-            pendingTxCard.addEventListener('click', showPendingTransactionsModal);
+        if (target && target.value > 0 && target.period === currentPeriodType) {
+            const currentValue = kpiValues[kpi.key];
+            const progress = Math.min((currentValue / target.value) * 100, 100);
+
+            progressBarHtml = `
+                <div class="space-y-1">
+                    <div class="w-full bg-slate-700 rounded-full h-2">
+                        <div class="bg-cyan-400 h-2 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="text-xs text-slate-400 flex justify-between">
+                        <span>${Math.round(progress)}%</span>
+                        <span>هدف: ${formatCurrency(target.value, 0)}</span>
+                    </div>
+                </div>
+            `;
         }
-    }
+
+        card.innerHTML = `
+            <div class="flex items-start gap-4">
+                <div class="bg-slate-800/60 h-10 w-10 shrink-0 flex items-center justify-center rounded-lg">
+                    <svg class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="${kpi.icon}" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-400 mb-1">${kpi.label}</p>
+                    <p class="text-xl font-bold text-white flex items-baseline">${kpi.value} <span class="text-xs mr-1">${kpi.unit}</span></p>
+                </div>
+            </div>
+            ${progressBarHtml}
+        `;
+        kpiGrid.appendChild(card);
+    });
+}
     
     function renderSalesProfitChart(data) {
         const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
@@ -1802,6 +1839,7 @@ async function init() {
         
         loginForm.addEventListener('submit', handleLogin);
         logoutBtn.addEventListener('click', handleLogout);
+         setupTargetsLogic();
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
@@ -1824,7 +1862,72 @@ async function init() {
         loadingOverlay.innerHTML = `<p class="text-red-400 text-center">خطا در اتصال به Firebase.<br>لطفاً کنسول را برای جزئیات بیشتر بررسی کنید.</p>`;
     }
 }
+// START: Add all of this new section
+function setupTargetsLogic() {
+    const openBtn = document.getElementById('open-targets-modal-btn');
+    const closeBtn = document.getElementById('close-targets-modal-btn');
+    const modal = document.getElementById('targets-modal');
+    const form = document.getElementById('targets-form');
+    const formBody = document.getElementById('targets-form-body');
 
+    // Load targets from browser's memory (localStorage)
+    const savedTargets = localStorage.getItem('kpi_targets');
+    if (savedTargets) {
+        KPI_TARGETS = JSON.parse(savedTargets);
+    }
+
+    const targetableKpis = {
+        totalNetProfit: 'سود خالص (تومان)',
+        totalSalesVolume: 'حجم فروش به مشتری (تومان)',
+        salesOrdersCount: 'تعداد فروش به مشتری (عدد)'
+    };
+
+    function populateTargetsForm() {
+        formBody.innerHTML = '';
+        for (const key in targetableKpis) {
+            const label = targetableKpis[key];
+            const existingTarget = KPI_TARGETS[key] || { value: 0, period: 'monthly' };
+            const html = `
+                <div class="grid grid-cols-3 gap-3 items-center">
+                    <label class="text-slate-300 col-span-1">${label}</label>
+                    <input type="number" data-key="${key}" value="${existingTarget.value}" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg p-2.5 col-span-1" placeholder="مقدار هدف">
+                    <select data-key="${key}-period" class="bg-slate-800/50 border border-slate-700 text-slate-300 text-sm rounded-lg p-2.5 col-span-1">
+                        <option value="monthly" ${existingTarget.period === 'monthly' ? 'selected' : ''}>ماهانه</option>
+                        <option value="quarterly" ${existingTarget.period === 'quarterly' ? 'selected' : ''}>فصلی</option>
+                        <option value="yearly" ${existingTarget.period === 'yearly' ? 'selected' : ''}>سالیانه</option>
+                    </select>
+                </div>
+            `;
+            formBody.innerHTML += html;
+        }
+    }
+
+    openBtn.addEventListener('click', () => {
+        populateTargetsForm();
+        modal.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const inputs = form.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            const key = input.dataset.key;
+            const value = parseFloat(input.value) || 0;
+            const periodSelect = form.querySelector(`select[data-key="${key}-period"]`);
+            const period = periodSelect.value;
+            KPI_TARGETS[key] = { value, period };
+        });
+
+        // Save to browser's memory
+        localStorage.setItem('kpi_targets', JSON.stringify(KPI_TARGETS));
+
+        modal.classList.add('hidden');
+        updateDashboardView(); // Re-render the dashboard to show progress bars
+    });
+}
+// END: Add all of this new section
 init();
    // ========== کد جدید را دقیقا اینجا اضافه کنید ==========
 window.firebaseTools = {
