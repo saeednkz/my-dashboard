@@ -397,9 +397,9 @@ function renderOrderCountChart(data) {
     const buyData = Object.values(aggregatedData).map(d => d.buyCount);
 
     const ctx = document.getElementById('orderCountChart').getContext('2d');
-    if(window.orderCountChart) window.orderCountChart.destroy();
+    if(orderCountChart) orderCountChart.destroy();
 
-    window.orderCountChart = new Chart(ctx, {
+    orderCountChart = new Chart(ctx, {
         type: 'bar', // Or 'line' if you prefer
         data: { 
             labels, 
@@ -449,9 +449,9 @@ function renderAssetCompositionChart() {
     }
 
     const ctx = document.getElementById('assetCompositionChart').getContext('2d');
-    if(window.assetCompositionChart) window.assetCompositionChart.destroy();
+    if(assetCompositionChart) assetCompositionChart.destroy();
 
-    window.assetCompositionChart = new Chart(ctx, {
+    assetCompositionChart = new Chart(ctx, {
         type: 'doughnut',
         data: { 
             labels, 
