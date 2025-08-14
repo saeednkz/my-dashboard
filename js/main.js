@@ -382,54 +382,51 @@ function renderKPIs(data) {
             }
         });
     }
-// START: Replace the entire function with this corrected version
+// START: Replace the entire function with this final, robust version
 function renderProfitCompositionChart(data) {
     const settledData = data.filter(d => d.costBasisStatus !== 'pending' && d.costBasisStatus !== 'pending_import');
     const selectedPeriod = periodFilter.options[periodFilter.selectedIndex].text;
     document.getElementById('profit-composition-chart-title').textContent = `ترکیب سود خالص - ${selectedPeriod}`;
     
+    // A more robust function to get values, handling both naming conventions
     const getValue = (transaction, keyWithUnderscore, keyWithSpace) => {
-        const value = transaction[keyWithUnderscore] || transaction[keyWithSpace] || 0;
-        return parseFloat(value);
+        let value = 0;
+        if (transaction) {
+            if (transaction[keyWithUnderscore] !== undefined && transaction[keyWithUnderscore] !== null) {
+                value = transaction[keyWithUnderscore];
+            } else if (transaction[keyWithSpace] !== undefined && transaction[keyWithSpace] !== null) {
+                value = transaction[keyWithSpace];
+            }
+        }
+        const parsedValue = parseFloat(value);
+        return isNaN(parsedValue) ? 0 : parsedValue;
     };
 
-    // Initialize all profit components to zero
-    let marginProfit = 0;
-    let totalFixWage = 0;
-    let totalVipAmount = 0;
-    let networkFeeProfit = 0;
-
-    // Calculate each component directly by iterating through transactions
-    settledData.forEach(d => {
+    // 1. Calculate the known profit components directly
+    const networkFeeProfit = settledData.reduce((sum, d) => {
         const price = getValue(d, 'currency_price', 'currency_price');
         const networkWage = getValue(d, 'Network_Wage', 'Network Wage');
         const actualNetworkWage = getValue(d, 'ActualNetwork_Wage', 'ActualNetwork Wage');
-        
-        totalFixWage += getValue(d, 'Fix_Wage', 'Fix Wage');
-        totalVipAmount += getValue(d, 'Vip_Amount', 'Vip Amount');
-        
-        const currentNetworkFeeProfit = (networkWage - actualNetworkWage) * price;
-        if (!isNaN(currentNetworkFeeProfit)) {
-            networkFeeProfit += currentNetworkFeeProfit;
-        }
+        const profitPerTx = (networkWage - actualNetworkWage) * price;
+        return sum + profitPerTx;
+    }, 0);
+    
+    const totalFixWage = settledData.reduce((sum, d) => sum + getValue(d, 'Fix_Wage', 'Fix Wage'), 0);
+    const totalVipAmount = settledData.reduce((sum, d) => sum + getValue(d, 'Vip_Amount', 'Vip Amount'), 0);
+    
+    // 2. Calculate the total net profit from the 'NetProfit' field of all transactions
+    const totalNetProfit = settledData.reduce((sum, d) => sum + getValue(d, 'NetProfit', 'NetProfit'), 0);
 
-        // Margin profit is only generated from 'buy' (sales to customer) transactions
-        if (d.services_type === 'buy') {
-            const costBasis = getValue(d, 'Cost_Basis', 'Cost_Basis');
-            const amount = getValue(d, 'currency_amount', 'currency_amount');
-            // Margin is the difference between sale price and cost basis, multiplied by amount
-            const currentMarginProfit = (price - costBasis) * amount;
-            if (!isNaN(currentMarginProfit)) {
-                marginProfit += currentMarginProfit;
-            }
-        }
-    });
+    // 3. Calculate margin profit as the remainder
+    // This is robust because it relies on the already calculated NetProfit
+    const marginProfit = totalNetProfit - networkFeeProfit - totalFixWage - totalVipAmount;
 
+    // Prepare data for the chart
     const chartData = [marginProfit, totalFixWage, totalVipAmount, networkFeeProfit].map(v => v > 0 ? v : 0);
     const labels = ['سود مارجین', 'کارمزد ثابت', 'کارمزد VIP', 'سود کارمزد شبکه'];
     const colors = ['#0ea5e9', '#10b981', '#f97316', '#8b5cf6'];
-    const ctx = document.getElementById('profitCompositionChart').getContext('2d');
     
+    const ctx = document.getElementById('profitCompositionChart').getContext('2d');
     if(profitCompositionChart) profitCompositionChart.destroy();
     
     profitCompositionChart = new Chart(ctx, {
@@ -451,13 +448,7 @@ function renderProfitCompositionChart(data) {
             plugins: { 
                 legend: { 
                     position: 'bottom', 
-                    labels: { 
-                        color: '#94a3b8', 
-                        usePointStyle: true, 
-                        boxWidth: 8, 
-                        padding: 20, 
-                        font: { family: 'Vazirmatn' } 
-                    } 
+                    labels: { color: '#94a3b8', usePointStyle: true, boxWidth: 8, padding: 20, font: { family: 'Vazirmatn' } } 
                 }, 
                 tooltip: { 
                     rtl: true, 
