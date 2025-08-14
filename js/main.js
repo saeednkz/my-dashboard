@@ -463,15 +463,34 @@ function renderOrderCountChart(data) {
                 }
             ] 
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top', align: 'end', labels: { color: '#94a3b8', font: { family: 'Vazirmatn' } } },
-                tooltip: { rtl: true, textDirection: 'rtl', callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} عدد` } }
-            },
-            scales: { x: { ticks: { color: '#94a3b8' } }, y: { beginAtZero: true, ticks: { color: '#94a3b8' } } }
-        }
+       options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { position: 'top', align: 'end', labels: { color: '#94a3b8', font: { family: 'Vazirmatn' } } },
+        tooltip: { rtl: true, textDirection: 'rtl', callbacks: { label: (c) => `${c.dataset.label}: ${c.raw} عدد` } }
+    },
+    scales: { 
+        x: { 
+            ticks: { 
+                color: '#94a3b8',
+                font: { family: 'Vazirmatn' },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 15,
+                // START: This callback function was missing
+                callback: (v, i) => new Date(labels[i]).toLocaleDateString('fa-IR', {day: 'numeric'})
+                // END: This callback function was missing
+            } 
+        }, 
+        y: { 
+            beginAtZero: true, 
+            ticks: { 
+                color: '#94a3b8' 
+            } 
+        } 
+    }
+}
     });
 }
 // END: Add the first new chart function
