@@ -613,6 +613,7 @@ function initializeUI() {
     setupPoolsPage();
     setupSuppliersPage();
     setupUsersPage();
+      setupTargetsLogic();
     applyPermissions();
     switchPage('dashboard');
     updateDashboardView();
@@ -1887,7 +1888,6 @@ async function init() {
         
         loginForm.addEventListener('submit', handleLogin);
         logoutBtn.addEventListener('click', handleLogout);
-         setupTargetsLogic();
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
