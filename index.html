@@ -94,6 +94,12 @@
         <header class="flex-shrink-0 flex flex-wrap items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-4">
                 <h2 class="text-3xl font-bold text-slate-100">داشبورد تحلیلی</h2>
+                 <button id="open-targets-modal-btn" class="text-slate-400 hover:text-white transition-colors" title="تنظیم اهداف">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.242 1.417l-.97 1.028c-.028.03-.053.062-.076.096-.144.375-.144.795 0 1.17l.076.096.97 1.028a1.125 1.125 0 01.242 1.417l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.127c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.242-1.417l.97-1.028c.028-.03.053-.062.076-.096.144-.375.144-.795 0-1.17l-.076-.096-.97-1.028a1.125 1.125 0 01-.242-1.417l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.127.332-.183.582-.495.644-.869l.213-1.28z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
                 <div id="current-datetime" class="hidden lg:flex items-center gap-2 text-slate-400 text-sm glass-card px-3 py-2 rounded-lg"></div>
             </div>
             <div class="flex items-center gap-3 p-2 glass-card rounded-xl">
@@ -302,6 +308,25 @@
     <div id="transaction-form-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
         </div>
 
-   <script type="module" src="js/main.js" defer></script>
+   <div id="targets-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b border-slate-700/50">
+            <h3 class="text-xl font-bold text-white">تنظیم اهداف KPI</h3>
+            <button id="close-targets-modal-btn" class="text-slate-400 hover:text-white">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="modal-body p-6 overflow-y-auto">
+            <form id="targets-form">
+                <div id="targets-form-body" class="space-y-4">
+                    </div>
+                <div class="mt-6">
+                    <button type="submit" class="w-full text-white bg-cyan-600 hover:bg-cyan-700 font-medium rounded-lg text-sm px-5 py-3 text-center">ذخیره اهداف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="module" src="js/main.js" defer></script>
 </body>
 </html>
