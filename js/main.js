@@ -121,15 +121,16 @@ function setupDashboard() {
     }
 
     // جایگزین کنید
+// START: Replace the entire function with this corrected version
 function populateDashboardFilters() {
     const yearFilter = document.getElementById('year-filter');
     const intervalTypeFilter = document.getElementById('interval-type-filter');
     const periodFilter = document.getElementById('period-filter');
 
-    // Use persian-date to get current Jalali year and month in Tehran time
-    const nowInTehran = new persianDate().setTimeZone('Asia/Tehran');
-    const currentJalaliYear = nowInTehran.year();
-    const currentJalaliMonth = nowInTehran.month(); // 1-based month (1=Farvardin)
+    // A more reliable way to get current Jalali date parts
+    const now = new persianDate(); // Create a new persianDate object for the current moment
+    const currentJalaliYear = now.year();
+    const currentJalaliMonth = now.month(); // This gives the month number (1 for Farvardin)
 
     yearFilter.innerHTML = '';
     for (let year = 1397; year <= currentJalaliYear; year++) {
@@ -138,14 +139,16 @@ function populateDashboardFilters() {
 
     intervalTypeFilter.innerHTML = `<option value="monthly">ماهیانه</option><option value="quarterly">فصلی</option><option value="yearly">سالیانه</option>`;
 
-    updatePeriodFilter(); // This populates the month/quarter dropdown
+    // This part remains the same
+    updatePeriodFilter();
 
     // Set default values to current year and month
     yearFilter.value = currentJalaliYear;
-    intervalTypeFilter.value = 'monthly'; // Default to monthly view
-    updatePeriodFilter(); // Call again to ensure month view is active
-    periodFilter.value = currentJalaliMonth - 1; // 0-based index for dropdown
+    intervalTypeFilter.value = 'monthly';
+    updatePeriodFilter();
+    periodFilter.value = currentJalaliMonth - 1; // Dropdown is 0-indexed
 }
+// END: Replacement block
 
     function updatePeriodFilter() {
         const intervalType = intervalTypeFilter.value;
